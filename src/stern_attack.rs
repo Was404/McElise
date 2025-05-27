@@ -1,33 +1,27 @@
 // stern_attack.rs
 use crate::keygen::PublicKey;
-use rand::{thread_rng, Rng};
-use rand::seq::SliceRandom;
+use rand::{thread_rng, seq::SliceRandom}; 
 
 /// Упрощенная реализация атаки Штерна для демонстрации
 pub fn stern_attack(pk: &PublicKey, n: usize, k: usize, t: usize) -> Option<Vec<Vec<u8>>> {
     let mut rng = thread_rng();
-    let max_iterations = 1000;
+    let max_iterations = 10_000;
     
-    // Шаг 1: Выбираем случайное подмножество столбцов
-    let mut columns: Vec<usize> = (0..n).collect();
-    columns.shuffle(&mut rng);
-    
-    // Для демонстрации: пытаемся найти два вектора с одинаковым синдромом
+    // Генерируем базовые векторы ошибок
     for _ in 0..max_iterations {
-        // Генерируем случайный вектор ошибки
-        let mut error = vec![0; n];
+        let mut e1 = vec![0; n];
         let mut indices: Vec<usize> = (0..n).collect();
         indices.shuffle(&mut rng);
         for &i in indices.iter().take(t) {
-            error[i] = 1;
+            e1[i] ^= 1;
         }
         
-        // Вычисляем синдром (в реальности нужна проверочная матрица)
-        let syndrome = compute_syndrome(&pk.matrix, &error, k);
+        // Пытаемся найти коллизию
+        let s1 = compute_syndrome(&pk.h_matrix, &e1);
         
-        // Простая проверка: если синдром нулевой, возвращаем ошибку
-        if syndrome.iter().all(|&x| x == 0) {
-            return Some(vec![error]);
+        // Проверяем нулевой синдром
+        if s1.iter().all(|&x| x == 0) {
+            return Some(vec![e1]);
         }
     }
     

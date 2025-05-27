@@ -1,7 +1,9 @@
 use crate::keygen::PublicKey; // Исправляем импорт
 use rand::{thread_rng, seq::SliceRandom};
+use crate::text_utils::text_to_bits;
 
-pub fn encrypt(pk: &PublicKey, message: &[u8], t: usize) -> Vec<u8> {
+pub fn encrypt(pk: &PublicKey, message: &str, t: usize) -> Vec<u8> {
+    let msg_bits = text_to_bits(message);
     let mut c = vec![0; pk.matrix[0].len()];
     for (i, col) in pk.matrix.iter().enumerate() {
         c[i] = message.iter().zip(col).map(|(&m, c)| m * c).sum::<u8>() % 2;
