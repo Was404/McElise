@@ -51,8 +51,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let msg = decrypt::decrypt(&sk, &ct);
             println!("Decrypted: {:?}", msg);
         }
-        Commands::Attack { ciphertext: _ } => { // Игнорируем неиспользуемый параметр
-            println!("Attack not implemented yet");
+        Commands::Attack => {
+            let pk_bytes = fs::read("public_key.bin")?;
+            let pk: keygen::PublicKey = bincode::deserialize(&pk_bytes)?;
+            let config = Config::default();
+        
+            if let Some(errors) = stern_attack::stern_attack(
+            &pk,
+            config.n,
+            config.k,
+            config.t
+        ) {
+                println!("Found potential error vectors: {:?}", errors);
+            } else {
+                println!("Attack failed after max iterations");
+            }
         }
     }
     
