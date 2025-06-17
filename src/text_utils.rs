@@ -7,13 +7,16 @@ pub fn text_to_bits(text: &str) -> Vec<u8> {
 }
 
 pub fn bits_to_text(bits: &[u8]) -> String {
-    let bytes: Vec<u8> = bits.chunks(8)
-        .map(|chunk| {
-            chunk.iter()
-                .enumerate()
-                .map(|(i, &bit)| bit << (7 - i % 8))
-                .sum()
-        })
-        .collect();
+    let mut bytes = Vec::new();
+    for chunk in bits.chunks(8) {
+        let mut byte = 0u8;
+        for (i, &bit) in chunk.iter().enumerate() {
+            if bit > 1 {
+                panic!("Bit value > 1: {}", bit);
+            }
+            byte |= bit << (7 - i);
+        }
+        bytes.push(byte);
+    }
     String::from_utf8_lossy(&bytes).to_string()
 }
