@@ -5,6 +5,7 @@ mod goppa_code;
 mod encrypt;
 mod decrypt;
 mod stern_attack;
+mod text_utils;
 
 //use serde;
 use std::fs;
@@ -16,6 +17,14 @@ use crate::config::Config;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+#[test]
+fn test_text_conversion() {
+    let text = "Test";
+    let bits = text_utils::text_to_bits(text);
+    let back = text_utils::bits_to_text(&bits);
+    assert_eq!(text, back);
 }
 
 #[derive(Subcommand)]
@@ -50,21 +59,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let sk_bytes = fs::read("private_key.bin")?;
             let sk: keygen::PrivateKey = bincode::deserialize(&sk_bytes)?;
             
-            // Поддерживаем оба формата ввода: hex и binary
             let ct = if ciphertext.starts_with("0x") {
-                hex::decode(&ciphertext[2..]).map_err(|e| e.to_string())?
+                hex::decode(&ciphertext[2..])?
             } else {
                 ciphertext.chars()
                     .map(|c| match c {
                         '0' => Ok(0),
                         '1' => Ok(1),
-                        _ => Err("Invalid binary character"))
+                        _ => Err("Invalid binary character"),
                     })
-                    .collect::<Result<Vec<u8>, _>>()?
+                    .collect::<Result<Vec<u8>, _>>()
+                    .map_err(|e| Box::<dyn std::error::Error>::from(e))?
             };
             
             let msg = decrypt::decrypt(&sk, &ct);
-            println!("Decrypted message: {}", msg);
+            println!("Decrypted: {}", msg);
         }
         Commands::Attack => { // Правильный формат для unit-варианта
             let pk_bytes = fs::read("public_key.bin")?;

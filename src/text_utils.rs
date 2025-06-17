@@ -1,6 +1,8 @@
 pub fn text_to_bits(text: &str) -> Vec<u8> {
     text.as_bytes().iter()
-        .flat_map(|byte| (0..8).rev().map(|i| (byte >> i) & 1))
+        .flat_map(|&byte| { // Используем pattern matching для копирования значения
+            (0..8).rev().map(move |i| (byte >> i) & 1)
+        })
         .collect()
 }
 
