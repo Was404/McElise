@@ -13,7 +13,7 @@ impl Default for Config {
         Self {
             n: 10,    // Пример для тестов
             k: 5,
-            t: 0,
+            t: 2,
             m: 4,
         }
     }

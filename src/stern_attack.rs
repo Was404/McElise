@@ -1,5 +1,7 @@
 use rand::{thread_rng, seq::SliceRandom};
 use std::collections::HashMap;
+use crate::text_utils::bits_to_text;
+use std::fs;
 
 /// Проверочная матрица H размера (n-k) x n
 fn compute_parity_check_matrix(_g: &[Vec<u8>], n: usize, k: usize) -> Vec<Vec<u8>> {
@@ -112,4 +114,35 @@ pub fn stern_attack(pk: &super::keygen::PublicKey, n: usize, k: usize, t: usize)
         }
     }
     None
+}
+
+pub fn stern_attack_and_recover(
+    pk: &super::keygen::PublicKey,
+    n: usize,
+    k: usize,
+    t: usize,
+    ciphertext_file: &str,
+) -> Option<String> {
+    if let Some(error_vec) = stern_attack(pk, n, k, t) {
+        println!("Found potential error vector: {:?}", error_vec);
+
+        // 1. Считать ciphertext.bin
+        let packed_ct = fs::read(ciphertext_file).ok()?;
+        // Если первые 4 байта — длина сообщения в битах, скорректируйте смещение:
+        let ct = crate::bit_utils::unpack_bits(&packed_ct[4..], None);
+
+        // 2. Исправить ошибки
+        let mut corrected = ct.clone();
+        for (i, &e) in error_vec.iter().enumerate() {
+            corrected[i] ^= e;
+        }
+
+        // 3. Извлечь первые k бит как исходное сообщение
+        let msg_bits = &corrected[..k];
+        let msg = bits_to_text(msg_bits);
+
+        Some(msg)
+    } else {
+        None
+    }
 }
