@@ -1,22 +1,34 @@
 use crate::keygen::PrivateKey;
 use crate::text_utils::bits_to_text;
 
-pub fn decrypt(sk: &PrivateKey, ciphertext: &[u8]) -> Vec<u8> {
-    let mut msg = vec![0; sk.s.len()];
+pub fn decrypt(sk: &PrivateKey, ciphertext: &[u8]) -> String {
+    let n = sk.p_inv.len();
+    let k = sk.s.len();
     
-    // Применяем обратную перестановку
-    let mut c = vec![0; ciphertext.len()];
-    for i in 0..ciphertext.len() {
-        for j in 0..ciphertext.len() {
-            c[i] ^= sk.p_inv[i][j] * ciphertext[j];
+    let mut message_bits = Vec::new();
+    
+    // Обрабатываем шифртекст блоками по n бит
+    for block in ciphertext.chunks(n) {
+        if block.len() != n {
+            continue;
         }
-        c[i] %= 2;
+        
+        let mut c = vec![0; n];
+        for i in 0..n {
+            for j in 0..n {
+                c[i] ^= sk.p_inv[i][j] & block[j];
+            }
+        }
+        
+        let mut m_s = vec![0; k];
+        for i in 0..k {
+            for j in 0..k {
+                m_s[i] ^= c[j] & sk.s[j][i];
+            }
+        }
+        
+        message_bits.extend(m_s);
     }
     
-    // Упрощенное декодирование (без реального исправления ошибок)
-    let decoded = &c[..sk.s.len()];
-    
-    // "Умножаем" на S inverse (для примера считаем S = I)
-    decoded.to_vec()
-    bits_to_text(&decoded_bits)
+    bits_to_text(&message_bits)
 }
