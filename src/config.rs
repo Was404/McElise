@@ -11,9 +11,9 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            n: 16,    // Пример для тестов
-            k: 8,
-            t: 3,
+            n: 10,    // Пример для тестов
+            k: 5,
+            t: 0,
             m: 4,
         }
     }

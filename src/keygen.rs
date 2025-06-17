@@ -18,9 +18,11 @@ pub struct PublicKey {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PrivateKey {
     pub s: Vec<Vec<u8>>,
+    pub s_inv: Vec<Vec<u8>>,
     pub p: Vec<Vec<u8>>,
     pub p_inv: Vec<Vec<u8>>,
     pub goppa_poly: u32,
+    pub support: Vec<usize>,
 }
 
 pub fn generate_and_save_keys(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
@@ -37,13 +39,12 @@ pub fn generate_and_save_keys(config: &Config) -> Result<(), Box<dyn std::error:
 }
 
 fn generate_keys(config: &Config) -> (PublicKey, PrivateKey) {
-    let (g, _, goppa_poly) = generate_goppa_code(config);
+    let (g, support, goppa_poly) = generate_goppa_code(config);
     let s = generate_invertible_matrix(config.k);
     let s_inv = inverse_matrix(&s).expect("S must be invertible");
-    let p = generate_permutation_matrix(config.n);
-    let p_inv = inverse_matrix(&p).expect("P must be invertible");
+    let (p, p_inv) = generate_permutation_matrix(config.n);
     let s_g = multiply_matrices(&s, &g, config.k, config.n);
     let g_prime = multiply_matrices(&s_g, &p, config.k, config.n);
     
-    (PublicKey { matrix: g_prime }, PrivateKey { s, p, p_inv, goppa_poly })
+    (PublicKey { matrix: g_prime }, PrivateKey { s, s_inv, p, p_inv, goppa_poly, support })
 }

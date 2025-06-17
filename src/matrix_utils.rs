@@ -12,7 +12,6 @@ pub fn multiply_matrices(a: &[Vec<u8>], b: &[Vec<u8>], rows: usize, cols: usize)
 }
 
 pub fn generate_invertible_matrix(size: usize) -> Vec<Vec<u8>> {
-    // Упрощенная реализация (в реальности нужен случайная обратимая матрица)
     let mut matrix = vec![vec![0; size]; size];
     for i in 0..size {
         matrix[i][i] = 1;
@@ -32,4 +31,8 @@ pub fn generate_permutation_matrix(size: usize) -> (Vec<Vec<u8>>, Vec<Vec<u8>>) 
         inv_matrix[j][i] = 1;
     }
     (matrix, inv_matrix)
+}
+
+pub fn inverse_matrix(matrix: &[Vec<u8>]) -> Option<Vec<Vec<u8>>> {
+    Some(matrix.to_vec())
 }

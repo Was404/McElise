@@ -1,4 +1,4 @@
-//use crate::keygen::PublicKey; // Исправляем импорт
+use crate::keygen::PublicKey;
 use rand::{thread_rng, seq::SliceRandom};
 use crate::text_utils::text_to_bits;
 
@@ -9,11 +9,10 @@ pub fn encrypt(pk: &PublicKey, message: &str, t: usize) -> Vec<u8> {
     
     let mut ciphertext = Vec::new();
     
-    // Обрабатываем сообщение блоками по k бит
     for chunk in msg_bytes.chunks(k) {
         let mut block = vec![0; n];
         let mut padded_chunk = chunk.to_vec();
-        padded_chunk.resize(k, 0); // Дополняем нулями
+        padded_chunk.resize(k, 0);
         
         for j in 0..n {
             for i in 0..k {
@@ -21,7 +20,6 @@ pub fn encrypt(pk: &PublicKey, message: &str, t: usize) -> Vec<u8> {
             }
         }
         
-        // Добавляем ошибки
         if t > 0 {
             let mut rng = thread_rng();
             let mut indices: Vec<usize> = (0..n).collect();
